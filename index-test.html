@@ -35,10 +35,6 @@
     import * as mannequin from "mannequin";
 
     // 1️⃣  Create the stage with a live animation loop
-    // const stage = createStage(() => {
-    //   mannequin.stage.controls.update();
-    //   mannequin.stage.renderer.render(mannequin.stage.scene, mannequin.camera);
-    // });
     const stage = createStage();
 
     function renderLoop() {
@@ -65,18 +61,37 @@
     }, 100);
 
     // 4️⃣  Button handlers
-    document.getElementById("saveBtn").addEventListener("click", () => {
-      const cam = mannequin.camera;
-      if (!cam) { alert("Camera not ready"); return; }
+    // document.getElementById("saveBtn").addEventListener("click", () => {
+    //   const cam = mannequin.camera;
+    //   if (!cam) { alert("Camera not ready"); return; }
 
-      const data = {
-        position: cam.position.toArray(),
-        rotation: { x: cam.rotation.x, y: cam.rotation.y, z: cam.rotation.z },
-        fov: cam.fov
-      };
-      const text = JSON.stringify(data, null, 2);
-      prompt("Copy this camera preset JSON:", text);
-    });
+    //   const data = {
+    //     position: cam.position.toArray(),
+    //     rotation: { x: cam.rotation.x, y: cam.rotation.y, z: cam.rotation.z },
+    //     fov: cam.fov
+    //   };
+    //   const text = JSON.stringify(data, null, 2);
+    //   prompt("Copy this camera preset JSON:", text);
+    // });
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+  // Wait up to 2s for the camera to appear, retrying every 100ms
+  for (let i = 0; i < 20; i++) {
+    if (mannequin.camera) break;
+    await new Promise(r => setTimeout(r, 100));
+  }
+
+  const cam = mannequin.camera;
+  if (!cam) { alert("Camera still not ready"); return; }
+
+  const data = {
+    position: cam.position.toArray(),
+    rotation: { x: cam.rotation.x, y: cam.rotation.y, z: cam.rotation.z },
+    fov: cam.fov
+  };
+  const text = JSON.stringify(data, null, 2);
+  prompt("Copy this camera preset JSON:", text);
+});
+
 
     document.getElementById("loadBtn").addEventListener("click", () => {
       const json = prompt("Paste saved camera JSON:");
