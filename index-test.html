@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Abigail Scene – Save/Load Camera</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <title>1:12PM Abigail Scene – Save/Load Camera</title>
+  <link rel="stylesheet" href="style.css" />
   <script type="importmap">
   {
     "imports": {
@@ -13,8 +13,16 @@
     }
   }
   </script>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+    #controls {
+      position: fixed;
+      top: 10px; left: 10px;
+      z-index: 9999;
+      display: flex; gap: 8px;
+    }
+  </style>
 </head>
-
 
 <body>
   <div id="controls">
@@ -26,56 +34,53 @@
     import { createStage, Female } from "mannequin";
     import * as mannequin from "mannequin";
 
-    // --- helper: wait until mannequin.camera exists ---
-    function getCamera() {
-      return new Promise(resolve => {
-        const check = setInterval(() => {
-          if (mannequin.camera) {
-            clearInterval(check);
-            resolve(mannequin.camera);
-          }
-        }, 100);
-      });
-    }
+    // 1️⃣  Create the stage with a live animation loop
+    const stage = createStage(() => {
+      mannequin.stage.controls.update();
+      mannequin.stage.renderer.render(mannequin.stage.scene, mannequin.camera);
+    });
 
-    // --- main setup ---
-    async function setup() {
-    createStage();
-    await new Promise(r => setTimeout(r, 0)); // let mannequin start its loop
-    const camera = await getCamera();          // now it’ll exist for sure
+    // 2️⃣  Add Abigail
+    const abigail = new Female(1.6);
+    abigail.stepOnGround();
 
-      console.log("Camera ready ✅", camera);
+    // 3️⃣  Once the camera exists, position it
+    const wait = setInterval(() => {
+      if (mannequin.camera) {
+        clearInterval(wait);
+        mannequin.camera.position.set(0, 1.6, 3);
+        mannequin.camera.lookAt(0, 1.0, 0);
+      }
+    }, 100);
 
-      const abigail = new Female(1.6);
-      abigail.stepOnGround();
+    // 4️⃣  Button handlers
+    document.getElementById("saveBtn").addEventListener("click", () => {
+      const cam = mannequin.camera;
+      if (!cam) { alert("Camera not ready"); return; }
 
-      // --- button actions ---
-      document.getElementById("saveBtn").addEventListener("click", () => {
-        const data = {
-          position: camera.position.toArray(),
-          rotation: { x: camera.rotation.x, y: camera.rotation.y, z: camera.rotation.z },
-          fov: camera.fov
-        };
-        const text = JSON.stringify(data, null, 2);
-        prompt("Copy this camera preset JSON:", text);
-      });
+      const data = {
+        position: cam.position.toArray(),
+        rotation: { x: cam.rotation.x, y: cam.rotation.y, z: cam.rotation.z },
+        fov: cam.fov
+      };
+      const text = JSON.stringify(data, null, 2);
+      prompt("Copy this camera preset JSON:", text);
+    });
 
-      document.getElementById("loadBtn").addEventListener("click", () => {
-        const json = prompt("Paste previously saved camera JSON:");
-        if (!json) return;
-        try {
-          const data = JSON.parse(json);
-          camera.position.fromArray(data.position);
-          camera.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
-          camera.fov = data.fov;
-          camera.updateProjectionMatrix();
-        } catch (err) {
-          alert("Invalid camera data!");
-        }
-      });
-    }
-
-    setup(); // run everything
+    document.getElementById("loadBtn").addEventListener("click", () => {
+      const json = prompt("Paste saved camera JSON:");
+      if (!json) return;
+      try {
+        const data = JSON.parse(json);
+        const cam = mannequin.camera;
+        cam.position.fromArray(data.position);
+        cam.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
+        cam.fov = data.fov;
+        cam.updateProjectionMatrix();
+      } catch (e) {
+        alert("Invalid camera data");
+      }
+    });
   </script>
 </body>
 </html>
