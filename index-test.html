@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Camera Save Debug</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/",
+      "mannequin": "https://cdn.jsdelivr.net/npm/mannequin-js@latest/src/mannequin.js"
+    }
+  }
+  </script>
+</head>
+
+<body>
+  <div id="controls">
+    <button id="saveBtn">💾 Save Camera</button>
+  </div>
+
+  <script type="module">
+    console.log("Script started ✅");
+
+    import { createStage, Female } from "mannequin";
+    import * as mannequin from "mannequin";
+
+    console.log("Imports finished ✅");
+
+    // --- build stage and model ---
+    createStage();
+    console.log("Stage created ✅");
+
+    const abigail = new Female(1.6);
+    abigail.stepOnGround();
+    console.log("Abigail added ✅");
+
+    // --- check camera availability ---
+    console.log("Mannequin camera right after createStage:", mannequin.camera);
+
+    // grab the camera after a short delay
+    setTimeout(() => {
+      const camera = mannequin.camera;
+      console.log("Camera after timeout:", camera);
+
+      const btn = document.getElementById("saveBtn");
+      console.log("Save button:", btn);
+
+      btn.addEventListener("click", () => {
+        console.log("Save button clicked 🎬");
+        if (!camera) {
+          console.error("Camera is still undefined ❌");
+          alert("Camera is undefined — mannequin.camera not ready");
+          return;
+        }
+
+        const data = {
+          position: camera.position.toArray(),
+          rotation: { x: camera.rotation.x, y: camera.rotation.y, z: camera.rotation.z },
+          fov: camera.fov
+        };
+        const text = JSON.stringify(data, null, 2);
+        console.log("Prompt about to open...");
+        prompt("Copy this camera preset JSON:", text);
+      });
+    }, 250); // small wait so mannequin.js finishes setup
+  </script>
+</body>
+</html>
