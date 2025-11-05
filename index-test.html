@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Camera Save Debug</title>
+  <title>Abigail Scene – Save/Load Camera</title>
   <link rel="stylesheet" href="style.css">
   <script type="importmap">
   {
@@ -18,53 +18,61 @@
 <body>
   <div id="controls">
     <button id="saveBtn">💾 Save Camera</button>
+    <button id="loadBtn">📂 Load Camera</button>
   </div>
 
   <script type="module">
-    console.log("Script started ✅");
-
     import { createStage, Female } from "mannequin";
     import * as mannequin from "mannequin";
 
-    console.log("Imports finished ✅");
+    // --- helper: wait until mannequin.camera exists ---
+    function getCamera() {
+      return new Promise(resolve => {
+        const check = setInterval(() => {
+          if (mannequin.camera) {
+            clearInterval(check);
+            resolve(mannequin.camera);
+          }
+        }, 100);
+      });
+    }
 
-    // --- build stage and model ---
-    createStage();
-    console.log("Stage created ✅");
+    // --- main setup ---
+    async function setup() {
+      createStage(); // auto stage
+      const camera = await getCamera(); // waits until camera ready
+      console.log("Camera ready ✅", camera);
 
-    const abigail = new Female(1.6);
-    abigail.stepOnGround();
-    console.log("Abigail added ✅");
+      const abigail = new Female(1.6);
+      abigail.stepOnGround();
 
-    // --- check camera availability ---
-    console.log("Mannequin camera right after createStage:", mannequin.camera);
-
-    // grab the camera after a short delay
-    setTimeout(() => {
-      const camera = mannequin.camera;
-      console.log("Camera after timeout:", camera);
-
-      const btn = document.getElementById("saveBtn");
-      console.log("Save button:", btn);
-
-      btn.addEventListener("click", () => {
-        console.log("Save button clicked 🎬");
-        if (!camera) {
-          console.error("Camera is still undefined ❌");
-          alert("Camera is undefined — mannequin.camera not ready");
-          return;
-        }
-
+      // --- button actions ---
+      document.getElementById("saveBtn").addEventListener("click", () => {
         const data = {
           position: camera.position.toArray(),
           rotation: { x: camera.rotation.x, y: camera.rotation.y, z: camera.rotation.z },
           fov: camera.fov
         };
         const text = JSON.stringify(data, null, 2);
-        console.log("Prompt about to open...");
         prompt("Copy this camera preset JSON:", text);
       });
-    }, 250); // small wait so mannequin.js finishes setup
+
+      document.getElementById("loadBtn").addEventListener("click", () => {
+        const json = prompt("Paste previously saved camera JSON:");
+        if (!json) return;
+        try {
+          const data = JSON.parse(json);
+          camera.position.fromArray(data.position);
+          camera.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
+          camera.fov = data.fov;
+          camera.updateProjectionMatrix();
+        } catch (err) {
+          alert("Invalid camera data!");
+        }
+      });
+    }
+
+    setup(); // run everything
   </script>
 </body>
 </html>
