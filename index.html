@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/",
+      "mannequin": "https://cdn.jsdelivr.net/npm/mannequin-js@latest/src/mannequin.js"
+    }
+  }
+  </script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #controls {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      font-family: sans-serif;
+      font-size: 14px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="controls">
+    <button id="saveBtn">💾 Save Camera</button>
+    <button id="loadBtn">📂 Load Camera</button>
+  </div>
+
+  <script type="module">
+    import { createStage, Female } from "mannequin";
+    import * as mannequin from "mannequin";
+
+    // --- Create stage (auto setup) ---
+    createStage();
+
+    // --- Add a mannequin ---
+    const abigail = new Female(1.6);
+    abigail.stepOnGround();
+
+    // --- Reference built-in camera ---
+    const camera = mannequin.camera;
+
+    // --- Save to prompt ---
+    function saveCameraPrompt() {
+      const data = {
+        position: camera.position.toArray(),
+        rotation: { x: camera.rotation.x, y: camera.rotation.y, z: camera.rotation.z },
+        fov: camera.fov
+      };
+      const text = JSON.stringify(data, null, 2);
+      prompt("Copy this camera preset JSON:", text);
+    }
+
+    // --- Load from prompt ---
+    function loadCameraPrompt() {
+      const json = prompt("Paste previously saved camera JSON:");
+      if (!json) return;
+      try {
+        const data = JSON.parse(json);
+        camera.position.fromArray(data.position);
+        camera.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
+        camera.fov = data.fov;
+        camera.updateProjectionMatrix();
+      } catch (err) {
+        alert("Invalid camera data!");
+      }
+    }
+
+    // --- Hook up buttons ---
+    document.getElementById("saveBtn").addEventListener("click", saveCameraPrompt);
+    document.getElementById("loadBtn").addEventListener("click", loadCameraPrompt);
+  </script>
+</body>
+</html>
