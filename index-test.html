@@ -35,10 +35,21 @@
     import * as mannequin from "mannequin";
 
     // 1️⃣  Create the stage with a live animation loop
-    const stage = createStage(() => {
-      mannequin.stage.controls.update();
-      mannequin.stage.renderer.render(mannequin.stage.scene, mannequin.camera);
-    });
+    // const stage = createStage(() => {
+    //   mannequin.stage.controls.update();
+    //   mannequin.stage.renderer.render(mannequin.stage.scene, mannequin.camera);
+    // });
+    const stage = createStage();
+
+    function renderLoop() {
+      if (mannequin.stage && mannequin.camera) {
+        mannequin.stage.controls?.update();
+        mannequin.stage.renderer.render(mannequin.stage.scene, mannequin.camera);
+      }
+      requestAnimationFrame(renderLoop);
+    }
+    renderLoop();
+
 
     // 2️⃣  Add Abigail
     const abigail = new Female(1.6);
