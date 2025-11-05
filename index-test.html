@@ -40,8 +40,10 @@
 
     // --- main setup ---
     async function setup() {
-      createStage(); // auto stage
-      const camera = await getCamera(); // waits until camera ready
+    createStage();
+    await new Promise(r => setTimeout(r, 0)); // let mannequin start its loop
+    const camera = await getCamera();          // now it’ll exist for sure
+
       console.log("Camera ready ✅", camera);
 
       const abigail = new Female(1.6);
