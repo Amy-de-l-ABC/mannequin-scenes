@@ -12,23 +12,6 @@
     }
   }
   </script>
-  <style>
-    body { margin: 0; overflow: hidden; }
-    #controls {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 10;
-      display: flex;
-      gap: 8px;
-    }
-    button {
-      font-family: sans-serif;
-      font-size: 14px;
-      padding: 6px 10px;
-      cursor: pointer;
-    }
-  </style>
 </head>
 
 <body>
@@ -45,6 +28,24 @@
 
     // --- Create stage (auto setup) ---
     createStage();
+
+    // ✅ delay a tick so mannequin.js finishes setting up globals
+    setTimeout(() => {
+      const camera = mannequin.camera;
+      console.log("Camera initialized ✅", camera);
+    
+      // now hook up buttons using this camera reference
+      document.getElementById("saveBtn").addEventListener("click", () => {
+        const data = {
+          position: camera.position.toArray(),
+          rotation: { x: camera.rotation.x, y: camera.rotation.y, z: camera.rotation.z },
+          fov: camera.fov
+        };
+        const text = JSON.stringify(data, null, 2);
+        prompt("Copy this camera preset JSON:", text);
+      });
+    }, 100);
+
 
     // --- Add a mannequin ---
     const abigail = new Female(1.6);
